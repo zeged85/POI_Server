@@ -1,0 +1,6 @@
+CREATE TABLE POIs(
+POI_id int, 
+
+
+PRIMARY KEY (POI_id)
+);

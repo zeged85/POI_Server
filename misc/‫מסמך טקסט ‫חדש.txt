@@ -1,0 +1,12 @@
+svivot-resource-group
+svivot-server
+
+username: username
+password: Pa$$word
+
+Collation: SQL_Latin1_General_CP1_CI_AS
+
+svivot-database
+
+ayulacan@hotmail.com
+1a2y3e4l

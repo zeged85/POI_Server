@@ -41,6 +41,7 @@ app.use('/', function (req, res, next) {
     DButilsAzure.execQuery(str)
         .then(function (result) {
            POIs = result;
+           console.log(POIs)
         })
         .catch(function(err){
             //cant find poi_of_user

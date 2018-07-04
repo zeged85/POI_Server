@@ -45,6 +45,7 @@ app.use('/', function (req, res, next) {
            console.log("why no change?")
         })
         .catch(function(err){
+            console.log(err)
             //cant find poi_of_user
             //console.log(err)
         })

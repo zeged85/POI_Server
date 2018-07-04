@@ -1,0 +1,494 @@
+//this is only an example, handling everything is yours responsibilty !
+var jwt = require('jsonwebtoken');
+var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+var util = require('util')
+var cors = require('cors');
+app.use(cors());
+var DButilsAzure = require('./DButils');
+
+
+app.set('superSecret', '1234');
+
+
+var questions = ["what is your pet's name?", "what is your mother's maiden name?", "what is your favorite food?"];
+var countries = ["Australia", "Bolivia", "China", "Denemark", "", "", "", "", "", "", "", "", "", ""]
+
+
+var fs = require('fs');
+
+var xml = fs.readFileSync('server\\countries.xml').toString();
+
+console.log(xml);
+
+var user;
+var token;
+
+
+app.use('/', function (req, res, next) {
+    console.log('inside use /');
+    token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    if (token) {
+        jwt.verify(token, app.get('superSecret'), function (err, decoded) {
+            if (err) {
+                return res.json({ success: false, message: "fail" });
+            }
+            else {
+                console.log('token ok');
+                //req.decoded = decoded; // decoded.payload , decoded.header
+                var username = decoded.userName;
+                var str = util.format("select * from Users where username = '%s';", username);
+                DButilsAzure.execQuery(str)
+                    .then(function (result) {
+                        console.log("creating user object");
+                        var username = result[0]['username'];
+                        var password = result[0]['password'];
+                        var firstname = result[0]['firstname'];
+                        var lastname = result[0]['lastname'];
+                        var email = result[0]['email'];
+                        var country = result[0]['country'];
+                        var question = result[0]['question'];
+                        var answer = result[0]['answer'];
+                        var category1 = result[0]['category1'];
+                        var category2 = result[0]['category2'];
+                        var category3 = result[0]['category3'];
+                        var category4 = result[0]['category4'];
+
+                        user = {
+                            username: username,
+                            password: password,
+                            firstname: firstname,
+                            lastname: lastname,
+                            Country: country,
+                            question: question,
+                            answer: answer,
+                            category1: category1,
+                            category2: category2,
+                            category3: category3,
+                            category4: category4
+                        }
+
+
+                        //add SQL query - get poi_of_user
+                        var usernew = util.format("POI_of_'%s'", user.username);
+
+                        //res.send(result);
+                        next();
+                    })
+                    .catch(function (err) {
+                        console.log("error creating user object");
+                    });
+            }
+
+        });
+
+    }
+    else {
+        next();
+    }
+
+});
+
+
+
+
+
+
+
+app.get('/reg', function (req, res) {
+    // var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    //token = app.get('token');
+    if (token) {
+        jwt.verify(token, app.get('superSecret'), function (err, decoded) {
+            if (err) {
+                return res.json({ success: false, message: "fail" });
+            }
+            else {
+                req.decoded = decoded; // decoded.payload , decoded.header
+                res.send("sign out of " + app.get('username') + "?");
+                next();
+            }
+        });
+    }
+    else {
+        res.send("please fill registration form");
+    }
+});
+
+
+app.post('/reg', function (req, res) {
+
+    if (req.body.username && req.body.password) {
+
+        var username = req.body.username;
+        var password = req.body.password;
+        var firstname = req.body.firstname;
+        var lastname = req.body.lastname;
+        var email = req.body.email;
+        var country = req.body.country;
+        var question = req.body.question;
+        var answer = req.body.answer;
+        var category1 = req.body.category1;
+        var category2 = req.body.category2;
+        var category3 = req.body.category3;
+        var category4 = req.body.category4;
+
+
+        var usernew = 'POI_of_' + username;
+        var tst = util.format("INSERT INTO Users ([username],[firstname] ,[lastname], [password], [email], [country], [question], [answer],[category1],[category2],[category3],[category4] ) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');", username, firstname, lastname, password, email, country, question, answer, category1, category2, category3, category4);
+        DButilsAzure.execQuery(tst)
+            .then(function (result) {
+
+                var tst2 = "CREATE TABLE " + usernew + " ( id int );";
+                DButilsAzure.execQuery(tst2)
+                    .then(function (result) {
+                        //res.send(result);
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.send('user already exists in dataBase');
+                // user already exists in dataBase
+            })
+
+        //user added to DB
+        //send user a token
+        var payload = {
+            userName: username,
+            admin: true
+        }
+
+
+        token = jwt.sign(payload, app.get('superSecret'));
+        //app.set('token', token)
+        res.send(token);
+    }
+    else {
+        res.send('missing data in filling form');
+    }
+})
+
+
+
+app.get('/log', function (req, res) {
+    // var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    //token = app.get('token');
+    if (token) {
+
+        req.decoded = decoded; // decoded.payload , decoded.header
+        var username = decoded.userName;
+        res.send("login as " + username + "?");
+
+    }
+    else {
+        res.send("please enter username and password");
+        //show log-in
+        //enter username
+        //enter password
+    }
+});
+
+
+
+app.post('/log', function (req, res) {
+    if (req.body.username && req.body.password) {
+
+
+        var password = req.body.password;
+        var username = req.body.username;
+        var usernew = 'POI_of_' + username;
+        //var tst = "INSERT INTO [Users] ([username],[firsname] ,[lastname], [password], [country], [email] ) VALUES ('" + username + "', 'rtyu', '123456');";
+        var str = util.format("select * from Users where username = '%s';", username);
+
+        DButilsAzure.execQuery(str)
+            .then(function (result) {
+                // res.send(result)
+                // console.log(result);
+
+                if (result == []) {
+                    console.log('username not found');
+                }
+                else {
+                    if (result[0]['password'] == password) {
+                        console.log('password ok');
+
+                        //send token
+
+                        var payload = {
+                            userName: username,
+                            admin: true
+                        }
+
+
+                        var token = jwt.sign(payload, app.get('superSecret'));
+                        app.set('token', token)
+                        res.send(token);
+
+
+                    }
+                    else {
+                        console.log('wrong password');
+                        res.send('wrong password');
+                    }
+                }
+
+
+            })
+            .catch(function (err) {
+                console.log(err);
+            })
+
+    }
+    else {
+        res.send('missing data');
+    }
+})
+
+
+
+
+
+
+
+
+app.post('/saveFavorites', function (req, res) {
+    if (token) {
+        var username = user.username;
+        var usernew = "POI_of_" + username;
+        var poi_array = req.body.poi_array;
+        if (Array.isArray(poi_array)) {
+            console.log("array!")
+        }
+        else {
+            console.log("not array")
+
+        }
+        var id = parseInt(req.body.poi_array[0], 10);
+        //res.send(req.query);
+        console.log(usernew);
+
+        //var str = util.format("INSERT INTO POI_of_ayeletpop ([id]) VALUES ('%s');", id);
+        var str = "INSERT INTO POI_of_" + username + " ([id]) VALUES (" + id + ");";
+        DButilsAzure.execQuery(str)
+            .then(function (result) {
+                res.send("POI " + id + " added to " + username + "'s list");
+            })
+            .catch(function (err) {
+                console.log(err);
+
+            })
+    }
+    else {
+        res.send('unregisted user');
+    }
+})
+
+
+app.get('/retrievePassword', function (req, res) {
+
+
+    /*
+
+
+    show questions listbox
+    username enterybox
+    answer entrybox
+
+    */
+
+    str = "enter a username and answer the question";
+    res.send(str);
+
+})
+
+
+
+app.post('/retrievePassword', function (req, res) {
+
+    if (req.body.username && req.body.answer) {
+
+
+
+        var username = req.body.username;
+        var answer = req.body.answer;
+
+
+        var str = util.format("select * from Users where username = '%s';", username);
+
+        DButilsAzure.execQuery(str)
+            .then(function (result) {
+
+
+
+                if (answer == result[0]['answer']) {
+
+                    var password = result[0]['password']
+                    str = "your password is " + password;
+                    res.send(str);
+                }
+                else {
+                    str = "your answer is wrong";
+                    res.send(str);
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.send('there was an error');
+
+            })
+
+    }
+
+})
+
+
+app.post('/postReview', function (req, res) {
+
+    //var usernew = 'POI_of_' + username;
+    if (token) {
+        //res.send(user.username)
+        user = app.get('user');
+        var username = user.username;
+        var review = req.body.review;
+        var daytime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        console.log("id=" + req.body.id);
+
+        var id = "Reviews_of_" + req.body.id;
+        //res.send(daytime);
+        var tst = util.format("INSERT INTO Reviews_of_1 (username,review ,daytime ) VALUES ('%s','%s','%s');", username, review, daytime);
+        DButilsAzure.execQuery(tst)
+
+            .then(function (result) {
+                res.send(result);
+            })
+            .catch(function (err) {
+                res.send(err);
+                console.log(err);
+            });
+
+
+    }
+    else {
+        res.send('unregisterd user')
+    }
+});
+
+
+app.post('/postRank', function (req, res) {
+
+    if (token) {
+        var rank = req.body.rank;
+        var id = req.body.id;
+        var tst = util.format("select * from POIs where id='%s';", id);
+        //var tst = util.format("INSERT INTO Reviews_of_'%s' ([username],[review] ,[daytime] ) VALUES ('%s','%s','%s');",username,review,daytime);
+        DButilsAzure.execQuery(tst)
+            .then(function (result) {
+
+                console.log(result);
+                var newrank = result[0]['total_score'] + rank;
+                var newnum = result[0]['num_of_votes'] + 1;
+                console.log('new rank =' + newrank);
+                //var tst2 = "CREATE TABLE " + usernew + " ( id int );";
+                var tst2 = util.format("update POIs set total_score='%s' where id='%s';", newrank, id);
+
+                DButilsAzure.execQuery(tst2)
+                    .then(function (result) {
+                        //res.send(result);
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+
+
+                var tst2 = util.format("update POIs set num_of_votes='%s' where id='%s';", newnum, id);
+
+                DButilsAzure.execQuery(tst2)
+                    .then(function (result) {
+                        //res.send(result);
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+
+
+    }
+    else {
+        res.send("unregisterd user");
+    }
+
+});
+
+app.get('/getPOIdata', function (req, res) {
+
+    var id = parseInt(req.query.id, 10);
+    //var id = req.query.id
+
+    if (id) {
+        //select * from review_of_'%s' 
+        console.log('getting poi data, id=' + id)
+        var query = "select * from Reviews_of_" + id + ";";
+        // var tst = util.format("select * from Reviews_of_1;", idnew);
+        DButilsAzure.execQuery(query)
+            .then(function (result) {
+                var query = "update POIs set num_of_views = num_of_views + 1 where id=" + id + ";";
+                res.send(result);
+                DButilsAzure.execQuery(query);
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.send("cant find table " + idnew)
+            });
+
+
+        //result.length size
+    }
+    else {
+        //no id given
+    }
+
+
+})
+
+app.get('/', function (req, res) {
+    //var token = app.get('token');
+    console.log(token);
+    if (token) {
+        //var user = app.get('user');
+        str = "hello " + user.username;
+        res.send(str);
+    }
+    else {
+        res.send("hello guest");
+    }
+
+
+
+    console.log(req);
+
+})
+
+
+//////////  WRITE ROUTES AND db REQURESTS HERE, LOOK AT SLIDE 20 
+
+
+var port = 4000;
+app.listen(port, function () {
+    console.log('Example app listening on port ' + port);
+});
+//-------------------------------------------------------------------------------------------------------------------
+
+

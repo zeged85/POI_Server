@@ -1,0 +1,1 @@
+insert into POIs (id, name, total_score, num_of_votes) values (12, 'fg', 0, 0);

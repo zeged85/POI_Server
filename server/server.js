@@ -42,6 +42,7 @@ app.use('/', function (req, res, next) {
         .then(function (result) {
            POIs = result;
            console.log(POIs)
+           console.log("why no change?")
         })
         .catch(function(err){
             //cant find poi_of_user

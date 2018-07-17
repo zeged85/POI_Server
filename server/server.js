@@ -37,18 +37,7 @@ app.use('/', function (req, res, next) {
     console.log('inside use /');
 
 
-    var str = util.format("select * from POIs;");
-    DButilsAzure.execQuery(str)
-        .then(function (result) {
-           POIs = result;
-           console.log(POIs)
-           console.log("why no change?")
-        })
-        .catch(function(err){
-            console.log(err)
-            //cant find poi_of_user
-            //console.log(err)
-        })
+
 
 
     token = req.body.token || req.query.token || req.headers['x-access-token'];

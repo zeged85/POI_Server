@@ -11,7 +11,22 @@ var DButilsAzure = require('./../DButils');
 var router=express.Router();
 module.exports = router;
 
+router.get('/getPOIs', function(req,res){
 
+    var str = util.format("select * from POIs;");
+    DButilsAzure.execQuery(str)
+        .then(function (result) {
+           POIs = result;
+           console.log(POIs)
+           console.log("why no change?")
+           res.send(result)
+        })
+        .catch(function(err){
+            console.log(err)
+            //cant find poi_of_user
+            //console.log(err)
+        })
+})
 
 router.post('/saveFavorites', function (req, res) {
     if (token) {

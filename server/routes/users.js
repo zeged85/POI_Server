@@ -167,6 +167,7 @@ router.post('/log', function (req, res) {
 
                 if (result.length<1) {
                     console.log('username not found');
+                    res.statusCode = 401
                     res.send('username not found')
                 }
                 else {
@@ -189,6 +190,7 @@ router.post('/log', function (req, res) {
                     }
                     else {
                         console.log('wrong password');
+                        res.statusCode = 401
                         res.send('wrong password');
                     }
                 }

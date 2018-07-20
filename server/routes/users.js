@@ -165,8 +165,9 @@ router.post('/log', function (req, res) {
                 // res.send(result)
                 // console.log(result);
 
-                if (result == []) {
+                if (result.length<1) {
                     console.log('username not found');
+                    res.send('username not found')
                 }
                 else {
                     if (result[0]['password'] == password) {

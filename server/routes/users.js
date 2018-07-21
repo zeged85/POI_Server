@@ -23,7 +23,19 @@ var fs = require('fs');
 xml2js = require('xml2js');
 var parser = new xml2js.Parser();
 
-
+var countries = [];
+fs.readFile('./countries.xml', function(err, data) {
+    parser.parseString(data, function (err, result) { 
+       // cb(result.xml.record)
+        //res.send(result);
+        var countriesArray = result['Countries']['Country']
+        for (var i=0; i<=countriesArray.length-1; i++){
+            countries.push(countriesArray[i].Name)
+        }
+       console.log(countries)
+    });
+    //console.log(countries)
+});
 
 router.get('/reg', function (req, res) {
      //var token = req.body.token || req.query.token || req.headers['x-access-token'];
@@ -41,19 +53,7 @@ router.get('/reg', function (req, res) {
         });
     }
     else {
-        var countries = [];
-        fs.readFile('./countries.xml', function(err, data) {
-            parser.parseString(data, function (err, result) { 
-               // cb(result.xml.record)
-                //res.send(result);
-                var countriesArray = result['Countries']['Country']
-                for (var i=0; i<=countriesArray.length-1; i++){
-                    countries.push(countriesArray[i].Name)
-                }
-               console.log(countries)
-            });
-            //console.log(countries)
-        });
+     
 
         //console.log(countries)
 
@@ -124,7 +124,8 @@ router.post('/reg', function (req, res) {
         res.send(token);
     }
     else {
-        res.send('missing data in filling form');
+        console.log(req.body)
+        res.send('missing data in filling form:');
     }
 })
 

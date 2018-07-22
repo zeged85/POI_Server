@@ -56,10 +56,12 @@ router.get('/getFavorites', function(req,res){
 })
 
 router.post('/saveFavorites', function (req, res) {
+    console.log('saving favs')
     if (token) {
         var username = user.username;
         var usernew = "POI_of_" + username;
         var id = req.body.poi_array;
+        console.log(req.body)
         var query = "INSERT INTO POI_of_" + username + " ([id]) VALUES ("
         if (Array.isArray(id)) {
             query+=id[0]+")"

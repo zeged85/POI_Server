@@ -28,6 +28,33 @@ router.get('/getPOIs', function(req,res){
         })
 })
 
+router.get('/getFavorites', function(req,res){
+    console.log('in favs')
+    if (token){
+
+        var username = user.username;
+        var usernew = "POI_of_" + username;
+        //var id = req.body.poi_array;
+        var query = "select * from POI_of_" + username + ";"
+
+        DButilsAzure.execQuery(query)
+            .then(function (result) {
+                res.send(result);
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.send(err)
+            })
+
+
+
+    }
+    else{
+        res.send('unknown user')
+    }
+
+})
+
 router.post('/saveFavorites', function (req, res) {
     if (token) {
         var username = user.username;

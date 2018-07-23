@@ -45,6 +45,7 @@ app.use('/', function (req, res, next) {
     if (token) {
         jwt.verify(token, app.get('superSecret'), function (err, decoded) {
             if (err) {
+                console.log("bad token")
                 return res.json({ success: false, message: "fail" });
             }
             else {

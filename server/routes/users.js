@@ -10,12 +10,12 @@ app.use(cors());
 var DButilsAzure = require('./../DButils');
 
 
-var router=express.Router();
+var router = express.Router();
 module.exports = router;
 
 app.set('superSecret', '1234');
-var user;
-var token;
+//var user;
+//var token;
 var questions = ["what is your pet's name?", "what is your mother's maiden name?", "what is your favorite food?"];
 //var countries = []
 
@@ -24,35 +24,35 @@ xml2js = require('xml2js');
 var parser = new xml2js.Parser();
 
 var countries = [];
-fs.readFile('./countries.xml', function(err, data) {
-    parser.parseString(data, function (err, result) { 
-       // cb(result.xml.record)
+fs.readFile('./countries.xml', function (err, data) {
+    parser.parseString(data, function (err, result) {
+        // cb(result.xml.record)
         //res.send(result);
         var countriesArray = result['Countries']['Country']
-        for (var i=0; i<=countriesArray.length-1; i++){
+        for (var i = 0; i <= countriesArray.length - 1; i++) {
             countries.push(countriesArray[i].Name)
         }
-       console.log(countries)
+        console.log(countries)
     });
     //console.log(countries)
 });
 
 router.get('/reg', function (req, res) {
-     //var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    //var token = req.body.token || req.query.token || req.headers['x-access-token'];
     //token = app.get('token');
- 
-
-        //console.log(countries)
-
-        var tstobj = {
-            questions: questions,
-            countries: countries
-        }
 
 
+    //console.log(countries)
 
-        res.send(tstobj);
-    
+    var tstobj = {
+        questions: questions,
+        countries: countries
+    }
+
+
+
+    res.send(tstobj);
+
 });
 
 
@@ -83,7 +83,7 @@ router.post('/reg', function (req, res) {
 
                 var tst2 = "CREATE TABLE " + usernew + " ( id int );";
                 DButilsAzure.execQuery(tst2)
-                
+
                     .then(function (result) {
                         //res.send(result);
                         console.log(result)
@@ -154,7 +154,7 @@ router.post('/log', function (req, res) {
                 // res.send(result)
                 // console.log(result);
 
-                if (result.length<1) {
+                if (result.length < 1) {
                     console.log('username not found');
                     res.statusCode = 401
                     res.send('username not found')
@@ -220,14 +220,14 @@ router.get('/retrievePassword', function (req, res) {
     DButilsAzure.execQuery(str)
         .then(function (result) {
 
-           var answer1 = Boolean(result[0]['answer1'])
-           var answer2 = Boolean(result[0]['answer2'])
+            var answer1 = Boolean(result[0]['answer1'])
+            var answer2 = Boolean(result[0]['answer2'])
 
-           let ans = {
-               answer1 : answer1,
-               answer2 : answer2,
-           }
-           res.send(ans)
+            let ans = {
+                answer1: answer1,
+                answer2: answer2,
+            }
+            res.send(ans)
         })
         .catch(function (err) {
             console.log(err);
@@ -280,5 +280,52 @@ router.post('/retrievePassword', function (req, res) {
             })
 
     }
-
 })
+
+
+router.get('/getCategories', function (req, res) {
+    console.log('in cats')
+    if (token) {
+
+        var username = user.username;
+        // var username = user.username;
+        //var answer = req.body.answer;
+        console.log(username)
+
+        var str = util.format("select * from Users where username = '%s';", username);
+
+        console.log(str)
+        DButilsAzure.execQuery(str)
+            .then(function (result) {
+
+                let category1 = result[0]['category1']
+                let category2 = result[0]['category2']
+                let category3 = result[0]['category3']
+                let category4 = result[0]['category4']
+
+                let categories = {
+                    category1: category1,
+                    category2: category2,
+                    category3: category3,
+                    category4: category4,
+                }
+
+                res.send(categories);
+
+            })
+            .catch(function (err) {
+                console.log(err);
+                res.send('there was an error');
+
+            })
+
+    }
+    else {
+        res.send('unknown user')
+    }
+
+});
+
+
+ 
+

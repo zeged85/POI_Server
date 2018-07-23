@@ -86,6 +86,7 @@ router.post('/reg', function (req, res) {
                 
                     .then(function (result) {
                         //res.send(result);
+                        console.log(result)
                     })
                     .catch(function (err) {
                         console.log(err);
@@ -200,7 +201,7 @@ router.post('/log', function (req, res) {
 
 
 
-app.get('/retrievePassword', function (req, res) {
+router.get('/retrievePassword', function (req, res) {
 
 
     /*
@@ -211,9 +212,32 @@ app.get('/retrievePassword', function (req, res) {
     answer entrybox
 
     */
+    console.log(req.query)
 
-    str = "enter a username and answer the question";
-    res.send(str);
+    var username = req.query.username
+    var str = util.format("select * from Users where username = '%s';", username);
+
+    DButilsAzure.execQuery(str)
+        .then(function (result) {
+
+           var answer1 = Boolean(result[0]['answer1'])
+           var answer2 = Boolean(result[0]['answer2'])
+
+           let ans = {
+               answer1 : answer1,
+               answer2 : answer2,
+           }
+           res.send(ans)
+        })
+        .catch(function (err) {
+            console.log(err);
+            res.send('username not found');
+
+        })
+
+
+    // str = "enter a username and answer the question";
+    // res.send(str);
 
 })
 
@@ -221,6 +245,8 @@ app.get('/retrievePassword', function (req, res) {
 
 router.post('/retrievePassword', function (req, res) {
 
+    console.log("in ret password")
+    console.log(req.body)
     if (req.body.username && req.body.answer) {
 
 
@@ -236,7 +262,7 @@ router.post('/retrievePassword', function (req, res) {
 
 
 
-                if (answer == result[0]['answer']) {
+                if (answer === result[0]['answer1'] || answer === result[0]['answer2']) {
 
                     var password = result[0]['password']
                     str = "your password is " + password;

@@ -40,20 +40,7 @@ fs.readFile('./countries.xml', function(err, data) {
 router.get('/reg', function (req, res) {
      //var token = req.body.token || req.query.token || req.headers['x-access-token'];
     //token = app.get('token');
-    if (token) {
-        jwt.verify(token, app.get('superSecret'), function (err, decoded) {
-            if (err) {
-                return res.json({ success: false, message: "fail" });
-            }
-            else {
-                req.decoded = decoded; // decoded.payload , decoded.header
-                res.send("sign out of " + app.get('username') + "?");
-               // next();
-            }
-        });
-    }
-    else {
-     
+ 
 
         //console.log(countries)
 
@@ -65,7 +52,7 @@ router.get('/reg', function (req, res) {
 
 
         res.send(tstobj);
-    }
+    
 });
 
 

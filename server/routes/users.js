@@ -298,10 +298,10 @@ router.get('/getCategories', function (req, res) {
         DButilsAzure.execQuery(str)
             .then(function (result) {
 
-                let category1 = result[0]['category1']
-                let category2 = result[0]['category2']
-                let category3 = result[0]['category3']
-                let category4 = result[0]['category4']
+                let category1 = result[0]['category1'] == "true"
+                let category2 = result[0]['category2'] == "true"
+                let category3 = result[0]['category3'] == "true"
+                let category4 = result[0]['category4'] == "true"
 
                 let categories = {
                     category1: category1,

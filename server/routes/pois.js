@@ -43,14 +43,14 @@ router.get('/getFavorites', function(req,res){
             })
             .catch(function (err) {
                 console.log(err);
-                res.send(err)
+                res.send([])
             })
 
 
 
     }
     else{
-        res.send('unknown user')
+        res.send([])
     }
 
 })
